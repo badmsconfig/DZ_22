@@ -6,9 +6,8 @@ from django.core.mail import send_mail
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.views.generic.base import ContextMixin
-
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
+from django.views.generic.base import ContextMixin, TemplateView, View
 
 
 
@@ -41,12 +40,6 @@ class PostCreateView(CreateView):
     def form_valid(self, form):
         form.instance.category_id = 7  # Установите желаемое значение category_id
         return super().form_valid(form)
-
-
-
-
-
-
 
 class NameContextMixin(ContextMixin):
     def get_context_data(self, *args, **kwargs):
@@ -154,58 +147,91 @@ def post(request, id):
     post = get_object_or_404(Post, id=id)
     return render(request, 'blogapp/post.html', context={'post': post})
 
-def about(request):
-    return render(request, 'blogapp/about.html')
+# def about(request):
+#     return render(request, 'blogapp/about.html')
+class AboutView(TemplateView):
+    template_name = 'blogapp/about.html'
+
+# def anketa(request):
+#     if request.method == 'POST':
+#         form = Anketa(request.POST)
+#         if form.is_valid():  # Проверка валидности формы
+#             # Переносим получение данных внутрь блока is_valid()
+#             name = form.cleaned_data['name']
+#             lname = form.cleaned_data['lname']
+#             adres = form.cleaned_data['adres']
+#             sex = form.cleaned_data['sex']
+#             email = form.cleaned_data['email']
+#             message = form.cleaned_data['message']
+#             favorite_book = form.cleaned_data['favorite_book']
+#             favorite_movie = form.cleaned_data['favorite_movie']
+#             # Здесь можно добавить дополнительную обработку данных, например, сохранение в базу данных
+#             return render(request, 'blogapp/anketa.html', {'name': name, 'lname': lname, 'adres': adres, 'sex': sex, 'email': email, 'message': message, 'favorite_book': favorite_book, 'favorite_movie': favorite_movie})
+#     else:
+#         form = Anketa()
+#     return render(request, 'blogapp/anketa.html', {'form': form})
+
+class AnketaView(FormView):
+    template_name = 'blogapp/anketa.html'
+    form_class = Anketa
+    success_url = '/anketa/success/'  # Укажите ваш URL для успешного завершения анкеты
+
+    def form_valid(self, form):
+        # Обработка валидной формы
+        name = form.cleaned_data['name']
+        lname = form.cleaned_data['lname']
+        adres = form.cleaned_data['adres']
+        sex = form.cleaned_data['sex']
+        email = form.cleaned_data['email']
+        message = form.cleaned_data['message']
+        favorite_book = form.cleaned_data['favorite_book']
+        favorite_movie = form.cleaned_data['favorite_movie']
+        # Здесь можно добавить дополнительную обработку данных, например, сохранение в базу данных
+        return render(self.request, 'blogapp/anketa.html', {'name': name, 'lname': lname, 'adres': adres, 'sex': sex, 'email': email, 'message': message, 'favorite_book': favorite_book, 'favorite_movie': favorite_movie})
 
 
-def anketa(request):
-    if request.method == 'POST':
-        form = Anketa(request.POST)
-        if form.is_valid():  # Проверка валидности формы
-            # Переносим получение данных внутрь блока is_valid()
-            name = form.cleaned_data['name']
-            lname = form.cleaned_data['lname']
-            adres = form.cleaned_data['adres']
-            sex = form.cleaned_data['sex']
-            email = form.cleaned_data['email']
-            message = form.cleaned_data['message']
-            favorite_book = form.cleaned_data['favorite_book']
-            favorite_movie = form.cleaned_data['favorite_movie']
-            # Здесь можно добавить дополнительную обработку данных, например, сохранение в базу данных
-            return render(request, 'blogapp/anketa.html', {'name': name, 'lname': lname, 'adres': adres, 'sex': sex, 'email': email, 'message': message, 'favorite_book': favorite_book, 'favorite_movie': favorite_movie})
-    else:
-        form = Anketa()
-    return render(request, 'blogapp/anketa.html', {'form': form})
+# def contact_view(request):
+#     if request.method == 'POST':
+#         form = Contact(request.POST)
+#         if form.is_valid():
+#             # Получить данные из формы
+#             name = form.cleaned_data['name']
+#             message = form.cleaned_data['message']
+#             email = form.cleaned_data['email']
+#
+#             send_mail(
+#             'Contact message',
+#             f'Ваше сообщение {message} принято',
+#             'from@example.com',
+#             [email],
+#             fail_silently=True,
+#             )
+#
+#         return HttpResponseRedirect(reverse('contact_success'))  # замените на ваше имя URL
+#     else:
+#         form = Contact()
+#     return render(request, 'blogapp/contact.html', {'form': form})
 
-def search(request):
-    form = SearchForm(request.GET)  # Используем GET запрос для получения данных формы
-    if form.is_valid():
-        query = form.cleaned_data['name']
-        # Выполняем поиск по вашей модели, замените YourModel на вашу реальную модель
-        results = Search.objects.filter(Q(title__icontains=query) | Q(description__icontains=query))
-        return render(request, 'blogapp/search.html', {'form': form, 'results': results})
-    else:
-        form = SearchForm()
-        return render(request, 'blogapp/search.html', {'form': form})
+class ContactView(View):
+    def get(self, request):
+        form = Contact()
+        return render(request, 'blogapp/contact.html', {'form': form})
 
-def contact_view(request):
-    if request.method == 'POST':
+    def post(self, request):
         form = Contact(request.POST)
         if form.is_valid():
-            # Получить данные из формы
             name = form.cleaned_data['name']
             message = form.cleaned_data['message']
             email = form.cleaned_data['email']
 
             send_mail(
-            'Contact message',
-            f'Ваше сообщение {message} принято',
-            'from@example.com',
-            [email],
-            fail_silently=True,
+                'Contact message',
+                f'Ваше сообщение {message} принято',
+                'from@example.com',
+                [email],
+                fail_silently=True,
             )
 
-        return HttpResponseRedirect(reverse('contact_success'))  # замените на ваше имя URL
-    else:
-        form = Contact()
-    return render(request, 'blogapp/contact.html', {'form': form})
+            return HttpResponseRedirect(reverse('contact_success'))  # замените на ваше имя URL
+        else:
+            return render(request, 'blogapp/contact.html', {'form': form})
