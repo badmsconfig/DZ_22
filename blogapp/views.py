@@ -189,7 +189,6 @@ class AnketaView(FormView):
         # Здесь можно добавить дополнительную обработку данных, например, сохранение в базу данных
         return render(self.request, 'blogapp/anketa.html', {'name': name, 'lname': lname, 'adres': adres, 'sex': sex, 'email': email, 'message': message, 'favorite_book': favorite_book, 'favorite_movie': favorite_movie})
 
-
 # def contact_view(request):
 #     if request.method == 'POST':
 #         form = Contact(request.POST)
