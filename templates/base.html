@@ -38,27 +38,53 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
+
+
           <li class="nav-item">
             <a class="nav-link" href="{% url 'blog:index' %}">Главная</a>
           </li>
 <!--          <li class="nav-item">-->
 <!--            <a class="nav-link" href="{% url 'blog:create' %}">Создать пост</a>-->
 <!--          </li>-->
+
+
           <li class="nav-item">
             <a class="nav-link" href="{% url 'blog:create' %}">Создать пост</a>
           </li>
+
+
           <li class="nav-item">
             <a class="nav-link" href="{% url 'blog:tag_list' %}">Список тегов</a>
           </li>
+
+
+          {% if user.is_authenticated %}
+          <li class="nav-item">
+            Привет,{{user.username}}
+            <a class="nav-link" href="{% url 'users:logout' %}"> Выход</a>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:login' %}">Вход</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:register' %}">Регистрация</a>
+          </li>
+          {% endif %}
+
           <li class="nav-item">
           <a class="nav-link" href="{% url 'blog:about' %}">О компании</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href="{% url 'blog:contact' %}">Контакты</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href="{% url 'blog:anketa' %}">Анкета</a>
           </li>
+
         </ul>
       </div>
     </div>
