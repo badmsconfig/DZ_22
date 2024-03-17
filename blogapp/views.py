@@ -8,9 +8,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
 from django.views.generic.base import ContextMixin, TemplateView, View
-from django.shortcuts import redirect
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.decorators import login_required, user_passes_test
+
 
 
 
@@ -32,59 +30,16 @@ def main_view(request):
 #         else:
 #             return render(request, 'blogapp/create.html', context={'form': form})
 
-@login_required
-def create_post(request):
-    if request.method == 'GET':
-        form = PostForm()
-        return render(request, 'blogapp/create.html', context={'form': form})
-    else:
-        form = PostForm(request.POST, files=request.FILES)
-        if form.is_valid():
-            # Добавляем user_id к создаваемому посту
-            post = form.save(commit=False)
-            post.user_id = request.user.id  # Используем id текущего пользователя
-            post.save()
-            return HttpResponseRedirect(reverse('blog:index'))
-        else:
-            return render(request, 'blogapp/create.html', context={'form': form})
+class PostCreateView(CreateView):
+    model = Post
+    form_class = PostForm
+    #fields = ['name', 'text', 'tags']
+    template_name = 'blogapp/create.html'
+    success_url = reverse_lazy('blog:index')
 
-# class PostCreateView(CreateView):
-#     # form_class =
-#     fields = '__all__'
-#     model = Tag
-#     success_url = reverse_lazy('blogapp:tag_list')
-#     template_name = 'blogapp/tag_create.html'
-#
-#     def form_valid(self, form):
-#         """
-#         Метод срабатывает после того как форма валидна
-#         :param form:
-#         :return:
-#         """
-#         # self.request.user - текущий пользователь
-#         # form.instance.user = self.request.user
-#         return super().form_valid(form)
-
-# Рабочий код но вернулись от класса к функции так как возникает ошибка FOREIGN KEY constraint failed
-# class PostCreateView(CreateView):
-#     model = Post
-#     form_class = PostForm
-#     #fields = ['name', 'text', 'tags']
-#     template_name = 'blogapp/create.html'
-#     success_url = reverse_lazy('blog:index')
-#
-#     # def form_valid(self, form):
-#     #     form.instance.category_id = 7  # Установите желаемое значение category_id
-#     #     return super().form_valid(form)
-
-# Функция к коду class PostCreateView(CreateView)
-#     def form_valid(self, form):
-#         if self.request.user.is_authenticated:
-#             form.instance.user = self.request.user
-#             form.instance.category_id = 7  # Установите желаемое значение category_id
-#             return super().form_valid(form)
-#         else:
-#             return redirect('login')
+    def form_valid(self, form):
+        form.instance.category_id = 7  # Установите желаемое значение category_id
+        return super().form_valid(form)
 
 class NameContextMixin(ContextMixin):
     def get_context_data(self, *args, **kwargs):
@@ -114,12 +69,10 @@ class TagListView(ListView, NameContextMixin):
         return Tag.objects.all()
 
 # детальная информация
-class TagDetailView(UserPassesTestMixin, DetailView, NameContextMixin):
+class TagDetailView(DetailView, NameContextMixin):
     model = Tag
     template_name = 'blogapp/tag_detail.html'
 
-    def test_func(self):
-        return self.request.user.is_superuser
     def get(self, request, *args, **kwargs):
         """
         Метод обработки get запроса
@@ -153,7 +106,7 @@ class TagDetailView(UserPassesTestMixin, DetailView, NameContextMixin):
         return get_object_or_404(Tag, pk=self.tag_id)
 
 # создание тега
-class TagCreateView(LoginRequiredMixin, CreateView, NameContextMixin):
+class TagCreateView(CreateView, NameContextMixin):
     # form_class =
     fields = '__all__'
     model = Tag
@@ -176,24 +129,20 @@ class TagCreateView(LoginRequiredMixin, CreateView, NameContextMixin):
         :param form:
         :return:
         """
-        # self.request.user - текущий пользователь
-        # form.instance.user = self.request.user
         return super().form_valid(form)
 
-class TagUpdateView(LoginRequiredMixin, UpdateView):
+class TagUpdateView(UpdateView):
     fields = '__all__'
     model = Tag
     success_url = reverse_lazy('blogapp:tag_list')
     template_name = 'blogapp/tag_create.html'
 
-class TagDeleteView(LoginRequiredMixin, DeleteView):
+class TagDeleteView(DeleteView):
     model = Tag
     success_url = reverse_lazy('blogapp:tag_list')
     template_name = 'blogapp/tag_delete_confirm.html'
 
 
-# может читать только админ
-#@user_passes_test(lambda u: u.is_superuser)
 def post(request, id):
     post = get_object_or_404(Post, id=id)
     return render(request, 'blogapp/post.html', context={'post': post})
@@ -240,6 +189,28 @@ class AnketaView(FormView):
         # Здесь можно добавить дополнительную обработку данных, например, сохранение в базу данных
         return render(self.request, 'blogapp/anketa.html', {'name': name, 'lname': lname, 'adres': adres, 'sex': sex, 'email': email, 'message': message, 'favorite_book': favorite_book, 'favorite_movie': favorite_movie})
 
+
+# def contact_view(request):
+#     if request.method == 'POST':
+#         form = Contact(request.POST)
+#         if form.is_valid():
+#             # Получить данные из формы
+#             name = form.cleaned_data['name']
+#             message = form.cleaned_data['message']
+#             email = form.cleaned_data['email']
+#
+#             send_mail(
+#             'Contact message',
+#             f'Ваше сообщение {message} принято',
+#             'from@example.com',
+#             [email],
+#             fail_silently=True,
+#             )
+#
+#         return HttpResponseRedirect(reverse('contact_success'))  # замените на ваше имя URL
+#     else:
+#         form = Contact()
+#     return render(request, 'blogapp/contact.html', {'form': form})
 
 class ContactView(View):
     def get(self, request):
