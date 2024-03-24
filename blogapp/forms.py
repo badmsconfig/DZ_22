@@ -23,7 +23,7 @@ class Anketa(forms.Form):
 # class SearchForm(forms.Form):
 #     q = forms.CharField(label='Поиск')
 
-class SearchForm(forms.Form):
+#class SearchForm(forms.Form):
     q = forms.CharField(label='Поиск')
 
 

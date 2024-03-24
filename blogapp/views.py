@@ -1,15 +1,18 @@
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404
 from .models import Post, Tag
-from .forms import Contact, SearchForm, PostForm
+from .forms import Contact, PostForm
 from .forms import Anketa
 from django.core.mail import send_mail
 from django.urls import reverse, reverse_lazy
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
 from django.views.generic.base import ContextMixin, TemplateView, View
-
-
+from django.contrib.auth import get_user_model
+from .forms import PostForm
+from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
 # Create your views here.
@@ -18,6 +21,7 @@ def main_view(request):
     return render(request, 'blogapp/index.html', context={'posts': posts})
 
 
+# @login_required
 # def create_post(request):
 #     if request.method == 'GET':
 #         form = PostForm()
@@ -30,16 +34,20 @@ def main_view(request):
 #         else:
 #             return render(request, 'blogapp/create.html', context={'form': form})
 
-class PostCreateView(CreateView):
+class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
-    #fields = ['name', 'text', 'tags']
     template_name = 'blogapp/create.html'
     success_url = reverse_lazy('blog:index')
 
     def form_valid(self, form):
-        form.instance.category_id = 7  # Установите желаемое значение category_id
-        return super().form_valid(form)
+        # Убеждаемся, что пользователь аутентифицирован перед сохранением поста
+        if self.request.user.is_authenticated:
+            form.instance.user = self.request.user
+            return super().form_valid(form)
+        else:
+            # Если пользователь не аутентифицирован, вы можете перенаправить его на страницу входа или выполнить другие действия
+            return HttpResponseForbidden("You must be logged in to create a post.")
 
 class NameContextMixin(ContextMixin):
     def get_context_data(self, *args, **kwargs):
@@ -56,7 +64,7 @@ class NameContextMixin(ContextMixin):
 
 # CRUD - CREATE, READ, UPDATE, DELETE
 # список тегов
-class TagListView(ListView, NameContextMixin):
+class TagListView(LoginRequiredMixin, ListView, NameContextMixin):
     model = Tag
     template_name = 'blogapp/tag_list.html'
     context_object_name = 'tags'
@@ -69,9 +77,21 @@ class TagListView(ListView, NameContextMixin):
         return Tag.objects.all()
 
 # детальная информация
-class TagDetailView(DetailView, NameContextMixin):
+class TagDetailView(UserPassesTestMixin, DetailView, NameContextMixin):
     model = Tag
     template_name = 'blogapp/tag_detail.html'
+
+    # def test_func(self):
+    #     return self.request.user.is_superuser
+
+    def test_func(self):
+        tag_id = self.kwargs.get('pk')
+        try:
+            tag = Tag.objects.get(pk=tag_id)
+            # Проверяем, имеет ли текущий пользователь права на просмотр этого тега
+            return tag.author == self.request.user or self.request.user.is_superuser
+        except Tag.DoesNotExist:
+            return False
 
     def get(self, request, *args, **kwargs):
         """
@@ -106,7 +126,8 @@ class TagDetailView(DetailView, NameContextMixin):
         return get_object_or_404(Tag, pk=self.tag_id)
 
 # создание тега
-class TagCreateView(CreateView, NameContextMixin):
+# Важно LoginRequiredMixin - он должен идти первым.
+class TagCreateView(LoginRequiredMixin, CreateView, NameContextMixin):
     # form_class =
     fields = '__all__'
     model = Tag
@@ -129,6 +150,7 @@ class TagCreateView(CreateView, NameContextMixin):
         :param form:
         :return:
         """
+        form.instance.author = self.request.user
         return super().form_valid(form)
 
 class TagUpdateView(UpdateView):
@@ -142,7 +164,8 @@ class TagDeleteView(DeleteView):
     success_url = reverse_lazy('blogapp:tag_list')
     template_name = 'blogapp/tag_delete_confirm.html'
 
-
+# может читать только админ
+@user_passes_test(lambda u: u.is_superuser)
 def post(request, id):
     post = get_object_or_404(Post, id=id)
     return render(request, 'blogapp/post.html', context={'post': post})

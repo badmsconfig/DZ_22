@@ -1,6 +1,8 @@
+from django.contrib.auth.models import User
 from django.db import models
 #from django.contrib.auth.models import User
 from usersapp.models import BlogUser
+from django.conf import settings
 
 # 3 типа наследования: abstract, классическое, proxy
 
@@ -13,7 +15,7 @@ class TimeStamp(models.Model):
     update = models.TextField(blank=True)
 
     class Meta:
-        abstract  = True
+        abstract = True
 
 # Create your models here.
 class Category(TimeStamp):
@@ -51,24 +53,37 @@ class Category(TimeStamp):
         return self.name
 class Tag(models.Model):
     name = models.CharField(max_length=16, unique=True)
+    # author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
+
+# class Post(TimeStamp):
+#     name = models.CharField(max_length=32, unique=True)
+#     text = models.TextField()
+#     # Связь с категорией
+#     # один - много
+#     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
+#     # связь с тегом
+#     tags = models.ManyToManyField(Tag)
+#     # Два варианта хранения картинок
+#     image = models.ImageField(upload_to='posts', null=True, blank=True)
+#     user = models.ForeignKey(BlogUser, on_delete=models.CASCADE) # null=True, blank=True - добавить при ошибке базы
+#     def __str__(self):
+#         return self.name
 
 class Post(TimeStamp):
     name = models.CharField(max_length=32, unique=True)
     text = models.TextField()
-    # Связь с категорией
-    # один - много
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
-    # связь с тегом
     tags = models.ManyToManyField(Tag)
-    # Два варианта хранения картинок
     image = models.ImageField(upload_to='posts', null=True, blank=True)
-    user = models.ForeignKey(BlogUser, on_delete=models.CASCADE) # null=True, blank=True - добавить при ошибке базы
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None)  # Используйте settings.AUTH_USER_MODEL для ссылки на модель пользователя по умолчанию
+
     def __str__(self):
         return self.name
+
 
 # Классическое наследование
 class CoreObject(models.Model):

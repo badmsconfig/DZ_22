@@ -1,6 +1,6 @@
 from django.urls import path
 from blogapp import views
-from blogapp.views import AboutView, ContactView, AnketaView
+from blogapp.views import AboutView, ContactView, AnketaView, PostCreateView
 
 app_name = 'blogapp'
 
@@ -11,7 +11,7 @@ urlpatterns = [
     #path('about/', views.about, name='about'),
     #path('anketa/', views.anketa, name='anketa'),
     #path('search/', views.search, name='search'),
-    path('create/', views.create_post, name='create'),
+    #path('create/', views.create_post, name='create'),
     #path('contact/', views.contact_view, name='contact'),
     path('tag-list/', views.TagListView.as_view(), name='tag_list'),
     path('tag-detail/<int:pk>/', views.TagDetailView.as_view(), name='tag_detail'),
@@ -22,6 +22,7 @@ urlpatterns = [
     path('about/', AboutView.as_view(), name='about'),
     path('contact/', ContactView.as_view(), name='contact'),
     path('anketa/', AnketaView.as_view(), name='anketa'),
+    path('create/', PostCreateView.as_view(), name='create'),
 ]
 
 
