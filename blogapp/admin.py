@@ -8,4 +8,3 @@ admin.site.register(Tag)
 admin.site.register(Imajes)
 
 
-hi
