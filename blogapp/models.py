@@ -84,7 +84,16 @@ class Post(TimeStamp):
     def __str__(self):
         return self.name
 
+    def has_image(self):
+        # print('my image:', self.image)
+        # print('type', type(self.image))
+        return bool(self.image)
 
+    def some_method(self):
+        return 'hello from method'
+
+    def __str__(self):
+        return f'{self.name}, category: {self.category.name}'
 # Классическое наследование
 class CoreObject(models.Model):
     name = models.CharField(max_length=32)

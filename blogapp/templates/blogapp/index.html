@@ -19,7 +19,16 @@
           </a>
           <p class="post-meta">Posted by
             <a href="#">Start Bootstrap</a>
-            on September 24, 2019</p>
+            on September 24, 2019.
+          {% if item.has_image %}
+            Есть картинка
+            {% else %}
+            Нет картинки
+          {% endif %}
+            {{item.has_image}}
+            {{item.some_method}}
+
+          </p>
         </div>
         <hr>
         {% endfor %}
