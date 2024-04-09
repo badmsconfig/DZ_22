@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'blogapp',
     'usersapp',
-
+    #'blogapp.tests',
     ]
 
 MIDDLEWARE = [

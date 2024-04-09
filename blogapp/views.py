@@ -255,6 +255,6 @@ class ContactView(View):
                 fail_silently=True,
             )
 
-            return HttpResponseRedirect(reverse('contact_success'))  # замените на ваше имя URL
+            return HttpResponseRedirect(reverse('/'))  # замените на ваше имя URL
         else:
             return render(request, 'blogapp/contact.html', {'form': form})
