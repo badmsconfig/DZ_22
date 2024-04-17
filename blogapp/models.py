@@ -80,6 +80,7 @@ class Post(TimeStamp):
     tags = models.ManyToManyField(Tag)
     image = models.ImageField(upload_to='posts', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None)  # Используйте settings.AUTH_USER_MODEL для ссылки на модель пользователя по умолчанию
+    rating = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.name
@@ -94,6 +95,12 @@ class Post(TimeStamp):
 
     def __str__(self):
         return f'{self.name}, category: {self.category.name}'
+
+    def display_tags(self):
+        tags = self.tags.all()
+        result = ';'.join([item.name for item in tags])
+        return result
+
 # Классическое наследование
 class CoreObject(models.Model):
     name = models.CharField(max_length=32)
