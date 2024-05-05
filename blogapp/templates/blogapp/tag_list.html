@@ -24,6 +24,34 @@
     </li>
     {% endfor %}
 
-        <a href="{% url 'blogapp:tag_create' %}">Создать новый тег</a>
-    </ul>
+    <div class="pagination">
+    <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+
+
+        <div class="float-right mt-3">
+            <a href="{% url 'blogapp:tag_create' %}" class="btn btn-primary">Создать новый тег</a>
+        </div>
+
+    </div>
+</div>
+
+<!--    <div>-->
+<!--        <a href="{% url 'blogapp:tag_create' %}">Создать новый тег</a>-->
+<!--    </div>-->
 {% endblock %}
+
+</ul>

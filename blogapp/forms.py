@@ -44,3 +44,20 @@ class PostForm(forms.ModelForm):
         exclude = ('user',)
 class PostCreateViev():
     pass
+
+
+class PostCategoryForm(forms.ModelForm):
+    name = forms.CharField(label='Название',
+                           widget=forms.TextInput(attrs={'placeholder': 'Name', 'class': 'form-control'}))
+    text = forms.CharField(label='Текст',
+                           widget=forms.TextInput(attrs={'placeholder': 'Введите текст', 'class': 'form-control'}))
+    #category = forms.ModelChoiceField(queryset=Category.objects.all(), label='Категория', widget=forms.Select(attrs={'class': 'form-control'}))
+
+    # Чекбоксы
+    tags = forms.ModelMultipleChoiceField(queryset=Tag.objects.all(),
+                                          widget=forms.CheckboxSelectMultiple())
+    class Meta:
+        model = Post
+        #fields = '__all__'
+        #fields = ('name', 'category')
+        exclude = ('user', 'category')

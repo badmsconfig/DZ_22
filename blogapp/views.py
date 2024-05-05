@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404
-from .models import Post, Tag
-from .forms import Contact, PostForm
+from .models import Post, Tag, Category
+from .forms import Contact, PostCategoryForm
 from .forms import Anketa
 from django.core.mail import send_mail
 from django.urls import reverse, reverse_lazy
@@ -13,26 +13,37 @@ from django.contrib.auth import get_user_model
 from .forms import PostForm
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 # Create your views here.
+# def main_view(request):
+#     posts = Post.objects.all()
+#     return render(request, 'blogapp/index.html', context={'posts': posts})
+
 def main_view(request):
-    posts = Post.objects.all()
-    return render(request, 'blogapp/index.html', context={'posts': posts})
+    #posts = Post.objects.all()
+    #posts = Post.objects.filter(is_active=True)
+    posts = Post.active_objects.all()
 
 
-# @login_required
-# def create_post(request):
-#     if request.method == 'GET':
-#         form = PostForm()
-#         return render(request, 'blogapp/create.html', context={'form': form})
-#     else:
-#         form = PostForm(request.POST, files=request.FILES)
-#         if form.is_valid():
-#             form.save()
-#             return HttpResponseRedirect(reverse('blog:index'))
-#         else:
-#             return render(request, 'blogapp/create.html', context={'form': form})
+    paginator = Paginator(posts, 3)
+
+    page = request.GET.get('page')
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        posts = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        posts = paginator.page(paginator.num_pages)
+
+    title = 'главная страница'
+    #title = title.capitalize()
+
+    return render(request, 'blogapp/index.html', context={'posts': posts, 'title': title})
+
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
@@ -68,13 +79,15 @@ class TagListView(LoginRequiredMixin, ListView, NameContextMixin):
     model = Tag
     template_name = 'blogapp/tag_list.html'
     context_object_name = 'tags'
+    paginate_by = 4
 
     def get_queryset(self):
         """
         Получение данных
         :return:
         """
-        return Tag.objects.all()
+        #return Tag.objects.all()
+        return Tag.objects.filter(is_active=True )
 
 # детальная информация
 class TagDetailView(UserPassesTestMixin, DetailView, NameContextMixin):
@@ -258,3 +271,49 @@ class ContactView(View):
             return HttpResponseRedirect(reverse('/'))  # замените на ваше имя URL
         else:
             return render(request, 'blogapp/contact.html', {'form': form})
+
+class CategoryDetailView(DetailView):
+    template_name = 'blogapp/category_detail.html'
+    model = Category
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = PostCategoryForm()
+        return context
+
+# class PostCategoryCreateView(CreateView):
+#     model = Post
+#     template_name = 'blogapp/category_detail.html'
+#     success_url = '/'
+#     form_class = PostCategoryForm
+#
+#     def post(self, request, *args, **kwargs):
+#         self.category_pk = kwargs['pk']
+#         return super().post(request, *args, **kwargs)
+#
+#     def form_valid(self, form):
+#         user = self.request.user
+#         form.instanсe.user = user
+#         category = get_object_or_404(Category, pk=self.category_pk)
+#         form.instanсe.category = category
+#         return super().form_valid()
+
+class PostCategoryCreateView(CreateView):
+    model = Post
+    template_name = 'blogapp/category_detail.html'
+    success_url = reverse_lazy('')
+    form_class = PostCategoryForm
+
+    def post(self, request, *args, **kwargs):
+        self.category_pk = kwargs['pk']
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        user = self.request.user
+        form.instance.user = user
+        category = get_object_or_404(Category, pk=self.category_pk)
+        form.instance.category = category
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('blog:category_detail', kwargs={'pk': self.category_pk})

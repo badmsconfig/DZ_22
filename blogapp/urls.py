@@ -23,6 +23,8 @@ urlpatterns = [
     path('contact/', ContactView.as_view(), name='contact'),
     path('anketa/', AnketaView.as_view(), name='anketa'),
     path('create/', PostCreateView.as_view(), name='create'),
+
+    path('category-detail/<int:pk>/', views.CategoryDetailView.as_view(), name='category_detail'),
+    path('post-category-create/<int:pk>/', views.PostCategoryCreateView.as_view(), name='post-category-create'),
+
 ]
-
-

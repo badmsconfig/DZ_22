@@ -6,6 +6,12 @@ from django.conf import settings
 
 # 3 типа наследования: abstract, классическое, proxy
 
+class IsActiveMixin(models.Model):
+    is_active = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
 class TimeStamp(models.Model):
     """
     Abstract - для нее не создаются новые таблицы
@@ -51,13 +57,18 @@ class Category(TimeStamp):
 
     def __str__(self):
         return self.name
-class Tag(models.Model):
+class Tag(IsActiveMixin):
     name = models.CharField(max_length=16, unique=True)
     # author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
+class ActiveManager(models.Manager):
+
+    def get_queryset(self):
+        all_objects = super().get_queryset()
+        return all_objects.filter(is_active=False)
 
 # class Post(TimeStamp):
 #     name = models.CharField(max_length=32, unique=True)
@@ -73,14 +84,17 @@ class Tag(models.Model):
 #     def __str__(self):
 #         return self.name
 
-class Post(TimeStamp):
+class Post(TimeStamp, IsActiveMixin):
+    #object = models.Manager()
+    active_objects = ActiveManager()
     name = models.CharField(max_length=32, unique=True)
     text = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, related_name='category_posts')
     tags = models.ManyToManyField(Tag)
     image = models.ImageField(upload_to='posts', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None)  # Используйте settings.AUTH_USER_MODEL для ссылки на модель пользователя по умолчанию
     rating = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
