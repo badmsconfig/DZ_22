@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'usersapp',
     #'blogapp.tests',
     'capapp',
+    'debug_toolbar',
     ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -51,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'blog.urls'
@@ -148,3 +151,9 @@ LOGOUT_REDIRECT_URL = '/'
 # Куда идти на логин
 LOGIN_URL = '/users/login'
 
+INTERNAL_IPS = [
+    # Добавьте свой IP-адрес в этот список
+    #'192.168.0.235',
+    # Пример: '192.168.1.1',
+    '127.0.0.1',
+    ]

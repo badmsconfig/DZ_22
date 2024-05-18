@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.functional import cached_property
+
 #from django.contrib.auth.models import User
 from usersapp.models import BlogUser
 from django.conf import settings
@@ -85,17 +87,22 @@ class ActiveManager(models.Manager):
 #         return self.name
 
 class Post(TimeStamp, IsActiveMixin):
-    #object = models.Manager()
+    objects = models.Manager()
     active_objects = ActiveManager()
     name = models.CharField(max_length=32, unique=True)
     text = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, related_name='category_posts')
     tags = models.ManyToManyField(Tag)
     image = models.ImageField(upload_to='posts', null=True, blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None)  # Используйте settings.AUTH_USER_MODEL для ссылки на модель пользователя по умолчанию
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=True, blank=True)  # Используйте settings.AUTH_USER_MODEL для ссылки на модель пользователя по умолчанию
     rating = models.PositiveIntegerField(default=1)
     is_active = models.BooleanField(default=False)
 
+
+    @cached_property
+    def get_all_tags(self):
+        tags = Tag.objects.all()
+        return tags
     def __str__(self):
         return self.name
 

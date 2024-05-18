@@ -15,7 +15,7 @@ def set_active(modeladmin, request, queryset):
     queryset.update(is_active=True)
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ['name', 'text', 'category', 'display_tags', 'has_image', 'rating', 'is_active']
+    list_display = ['id', 'name', 'text', 'category', 'display_tags', 'has_image', 'rating', 'is_active']
     actions = [clear_rating, set_active]
 
 admin.site.register(Post, PostAdmin)
